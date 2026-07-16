@@ -1,0 +1,233 @@
+/* =========================================================================
+   BATHROOM SMART DASHBOARD — style.css
+   -------------------------------------------------------------------------
+   Dirección de diseño: "espejo de agua" — un panel de vidrio flotando sobre
+   ondas ambientales muy lentas que cambian de tono según la hora del día
+   y el clima exterior (noche/día/lluvia/sol). Inspirado en Nest Hub / Home
+   Assistant, pero con una identidad propia ligada al agua y al vapor de
+   un baño.
+   ========================================================================= */
+
+:root{
+  /* --- Paleta ------------------------------------------------------- */
+  --ink:        #0e1520;   /* fondo base, casi negro azulado */
+  --mist:       #182233;   /* superficies / tarjetas */
+  --mist-soft:  rgba(24, 34, 51, 0.55);
+  --foam:       #f2f6f7;   /* texto principal */
+  --slate:      #8aa0ae;   /* texto secundario */
+  --aqua:       #5fd3c4;   /* acento frío / agua */
+  --amber:      #f2b75c;   /* acento cálido / sol */
+  --rain:       #6f93b8;   /* acento lluvia */
+
+  /* --- Tipografía ------------------------------------------------------ */
+  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-body:    'Inter', 'Segoe UI', sans-serif;
+
+  /* --- Forma ------------------------------------------------------- */
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --gap: 22px;
+
+  --ease-ambient: cubic-bezier(.37,0,.63,1);
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;               /* nunca hay scroll: es una pantalla fija */
+  background: var(--ink);
+  color: var(--foam);
+  font-family: var(--font-body);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Reduce motion: respetar accesibilidad incluso en un panel sin interacción */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* =========================================================================
+   FONDO AMBIENTAL — el elemento "firma" del diseño.
+   Tres manchas de gradiente, muy desenfocadas, que se mueven a cámara
+   lentísima como ondas en el agua. app.js cambia las variables de color
+   según la hora / el clima; el CSS solo se encarga del movimiento.
+   ========================================================================= */
+#ambient-bg{
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--ink);
+  transition: background 4s var(--ease-ambient);
+}
+
+.ripple{
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  will-change: transform;
+  transition: background 6s var(--ease-ambient), opacity 6s var(--ease-ambient);
+}
+
+.ripple-a{
+  top: -20vmax;
+  left: -10vmax;
+  background: radial-gradient(circle at 30% 30%, var(--aqua), transparent 70%);
+  animation: drift-a 90s var(--ease-ambient) infinite;
+}
+.ripple-b{
+  bottom: -25vmax;
+  right: -15vmax;
+  background: radial-gradient(circle at 60% 60%, var(--rain), transparent 70%);
+  animation: drift-b 110s var(--ease-ambient) infinite;
+}
+.ripple-c{
+  top: 30vh;
+  left: 40vw;
+  width: 55vmax;
+  height: 55vmax;
+  background: radial-gradient(circle at 50% 50%, var(--amber), transparent 70%);
+  opacity: 0.16;
+  animation: drift-c 130s var(--ease-ambient) infinite;
+}
+
+@keyframes drift-a{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  50%{ transform: translate(6vw, 4vh) scale(1.12); }
+}
+@keyframes drift-b{
+  0%,100%{ transform: translate(0,0) scale(1); }
+  50%{ transform: translate(-5vw, -6vh) scale(1.08); }
+}
+@keyframes drift-c{
+  0%,100%{ transform: translate(-4vw, 0) scale(1); }
+  50%{ transform: translate(4vw, 5vh) scale(1.15); }
+}
+
+.grain{
+  position: absolute;
+  inset: 0;
+  background: repeating-radial-gradient(circle at center, rgba(255,255,255,0.015) 0, transparent 1px);
+  background-size: 3px 3px;
+  mix-blend-mode: overlay;
+}
+
+/* =========================================================================
+   LAYOUT PRINCIPAL — rejilla estilo panel de control
+   ========================================================================= */
+#dashboard{
+  position: relative;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  padding: var(--gap);
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--gap);
+  grid-template-areas:
+    "clock    weather  bathroom"
+    "photos   calendar bathroom"
+    "news     news     news";
+}
+
+.widget{
+  background: var(--mist-soft);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(242,246,247,0.06);
+  border-radius: var(--radius-lg);
+  padding: 26px 28px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity .6s ease;
+}
+
+.widget-header{ margin-bottom: 14px; }
+.widget-eyebrow{
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 500;
+}
+
+/* --- Reloj ------------------------------------------------------------ */
+.widget-clock{
+  grid-area: clock;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+}
+.clock-time{
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(64px, 9vw, 128px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.clock-meta{
+  margin-top: 10px;
+  font-size: 20px;
+  color: var(--slate);
+  text-transform: capitalize;
+}
+.clock-meta .dot{ margin: 0 8px; opacity: .5; }
+
+/* --- Tiempo exterior ---------------------------------------------------- */
+.widget-weather{ grid-area: weather; }
+.weather-main{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 0 18px;
+}
+.weather-icon{ font-size: 46px; line-height: 1; }
+.weather-temp{
+  font-family: var(--font-display);
+  font-size: 56px;
+  font-weight: 600;
+}
+.weather-details{ display: flex; gap: 22px; margin-top: auto; }
+.weather-stat, .bathroom-stat{ display: flex; flex-direction: column; gap: 2px; }
+.stat-label{ font-size: 12px; color: var(--slate); }
+.stat-value{ font-size: 20px; font-weight: 600; font-family: var(--font-display); }
+
+/* --- Sensores del baño --------------------------------------------------- */
+.widget-bathroom{ grid-area: bathroom; }
+.bathroom-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  justify-content: center;
+  flex: 1;
+}
+.bathroom-stat .stat-value{ font-size: 30px; color: var(--aqua); }
+
+/* --- Calendario ------------------------------------------------------- */
+.widget-calendar{ grid-area: calendar; }
+.calendar-list{
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+.calendar-item{
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(242,246,247,0.07);
+}
+.calendar-item:last-child{ border-bottom: none;
