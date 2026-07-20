@@ -1,18 +1,19 @@
 /**
  * photos.js
  * -----------------------------------------------------------------------
- * Widget independiente: carrusel de fotografías familiares con
- * transición cruzada (crossfade) suave. Usa dos capas <img> superpuestas
- * y alterna cuál está visible — evita parpadeos y no exige recargar el
- * documento.
+ * Fàbrica de carrusels de fotografies amb transició creuada (crossfade)
+ * suau. Es fa servir dues vegades (veure app.js): un cop per al carrusel
+ * principal i un altre per al de la columna dreta — cadascun amb la seva
+ * pròpia llista d'imatges des de config.js, totalment independents entre
+ * ells.
  * -----------------------------------------------------------------------
  */
 
-const PhotosWidget = (() => {
+function createPhotoCarousel({ currentId, nextId, images, intervalSeconds }){
 
   let timerId = null;
   let index = 0;
-  let showingCurrent = true; // qué capa está activa
+  let showingCurrent = true;
 
   function preload(src){
     return new Promise(resolve => {
@@ -24,21 +25,19 @@ const PhotosWidget = (() => {
   }
 
   async function advance(){
-    const cfg = window.DASHBOARD_CONFIG.photos;
-    const images = cfg.images;
     if (!images || images.length === 0) return;
 
     index = (index + 1) % images.length;
     const nextSrc = images[index];
 
-    const visibleId  = showingCurrent ? 'photo-current' : 'photo-next';
-    const hiddenId   = showingCurrent ? 'photo-next' : 'photo-current';
-    const hiddenEl   = document.getElementById(hiddenId);
-    const visibleEl  = document.getElementById(visibleId);
+    const visibleId = showingCurrent ? currentId : nextId;
+    const hiddenId  = showingCurrent ? nextId : currentId;
+    const hiddenEl  = document.getElementById(hiddenId);
+    const visibleEl = document.getElementById(visibleId);
     if (!hiddenEl || !visibleEl) return;
 
     const ok = await preload(nextSrc);
-    if (!ok) return; // si falta la imagen, se mantiene la actual (no rompe el layout)
+    if (!ok) return; // si falta la imatge, es manté l'actual (no trenca el disseny)
 
     hiddenEl.src = nextSrc;
     hiddenEl.classList.add('photo-visible');
@@ -47,16 +46,13 @@ const PhotosWidget = (() => {
   }
 
   async function init(){
-    const cfg = window.DASHBOARD_CONFIG.photos;
-    if (!cfg.images || cfg.images.length === 0) return;
+    if (!images || images.length === 0) return;
 
-    // Carga la primera imagen directamente en la capa visible
-    const firstOk = await preload(cfg.images[0]);
-    const currentEl = document.getElementById('photo-current');
-    if (firstOk && currentEl) currentEl.src = cfg.images[0];
+    const firstOk = await preload(images[0]);
+    const currentEl = document.getElementById(currentId);
+    if (firstOk && currentEl) currentEl.src = images[0];
 
-    const seconds = cfg.intervalSeconds || 12;
-    timerId = setInterval(advance, seconds * 1000);
+    timerId = setInterval(advance, (intervalSeconds || 12) * 1000);
   }
 
   function destroy(){
@@ -65,6 +61,6 @@ const PhotosWidget = (() => {
   }
 
   return { init, destroy };
-})();
+}
 
-window.PhotosWidget = PhotosWidget;
+window.createPhotoCarousel = createPhotoCarousel;
