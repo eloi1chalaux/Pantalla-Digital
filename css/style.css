@@ -1,25 +1,25 @@
 /* =========================================================================
    BATHROOM SMART DASHBOARD — style.css
    -------------------------------------------------------------------------
-   Dirección de diseño: "espejo de agua" — un panel de vidrio flotando sobre
-   ondas ambientales muy lentas que cambian de tono según la hora del día
-   y el clima exterior (noche/día/lluvia/sol). Inspirado en Nest Hub / Home
-   Assistant, pero con una identidad propia ligada al agua y al vapor de
-   un baño.
+   Direcció de disseny: "mirall d'aigua" — un panell de vidre flotant sobre
+   ones ambientals molt lentes que canvien de to segons l'hora del dia i el
+   clima exterior (nit/dia/pluja/sol). Inspirat en Nest Hub / Home
+   Assistant, però amb una identitat pròpia lligada a l'aigua i al vapor
+   d'un bany.
    ========================================================================= */
 
 :root{
   /* --- Paleta ------------------------------------------------------- */
-  --ink:        #0e1520;   /* fondo base, casi negro azulado */
-  --mist:       #182233;   /* superficies / tarjetas */
+  --ink:        #0e1520;   /* fons base, gairebé negre blavós */
+  --mist:       #182233;   /* superfícies / targetes */
   --mist-soft:  rgba(24, 34, 51, 0.55);
-  --foam:       #f2f6f7;   /* texto principal */
-  --slate:      #8aa0ae;   /* texto secundario */
-  --aqua:       #5fd3c4;   /* acento frío / agua */
-  --amber:      #f2b75c;   /* acento cálido / sol */
-  --rain:       #6f93b8;   /* acento lluvia */
+  --foam:       #f2f6f7;   /* text principal */
+  --slate:      #8aa0ae;   /* text secundari */
+  --aqua:       #5fd3c4;   /* accent fred / aigua */
+  --amber:      #f2b75c;   /* accent càlid / sol */
+  --rain:       #6f93b8;   /* accent pluja */
 
-  /* --- Tipografía ------------------------------------------------------ */
+  /* --- Tipografia ------------------------------------------------------ */
   --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
   --font-body:    'Inter', 'Segoe UI', sans-serif;
 
@@ -38,7 +38,7 @@ html, body{
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;               /* nunca hay scroll: es una pantalla fija */
+  overflow: hidden;               /* mai hi ha scroll: és una pantalla fixa */
   background: var(--ink);
   color: var(--foam);
   font-family: var(--font-body);
@@ -47,16 +47,16 @@ html, body{
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Reduce motion: respetar accesibilidad incluso en un panel sin interacción */
+/* Reduce motion: respectar l'accessibilitat encara que no hi hagi interacció */
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
 /* =========================================================================
-   FONDO AMBIENTAL — el elemento "firma" del diseño.
-   Tres manchas de gradiente, muy desenfocadas, que se mueven a cámara
-   lentísima como ondas en el agua. app.js cambia las variables de color
-   según la hora / el clima; el CSS solo se encarga del movimiento.
+   FONS AMBIENTAL — l'element "signatura" del disseny.
+   Tres taques de gradient, molt desenfocades, que es mouen a càmera
+   lentíssima com ones a l'aigua. app.js canvia les variables de color
+   segons l'hora / el clima; el CSS només s'encarrega del moviment.
    ========================================================================= */
 #ambient-bg{
   position: fixed;
@@ -122,7 +122,7 @@ html, body{
 }
 
 /* =========================================================================
-   LAYOUT PRINCIPAL — rejilla estilo panel de control
+   DISPOSICIÓ PRINCIPAL — graella estil panell de control
    ========================================================================= */
 #dashboard{
   position: relative;
@@ -135,9 +135,9 @@ html, body{
   grid-template-rows: auto 1fr auto;
   gap: var(--gap);
   grid-template-areas:
-    "clock    weather  bathroom"
-    "photos   calendar bathroom"
-    "news     news     news";
+    "clock    weather    photosSide"
+    "photos   calendar   photosSide"
+    "news     news       news";
 }
 
 .widget{
@@ -161,7 +161,7 @@ html, body{
   font-weight: 500;
 }
 
-/* --- Reloj ------------------------------------------------------------ */
+/* --- Rellotge ------------------------------------------------------------ */
 .widget-clock{
   grid-area: clock;
   justify-content: center;
@@ -183,7 +183,7 @@ html, body{
 }
 .clock-meta .dot{ margin: 0 8px; opacity: .5; }
 
-/* --- Tiempo exterior ---------------------------------------------------- */
+/* --- Temps exterior ---------------------------------------------------- */
 .widget-weather{ grid-area: weather; }
 .weather-main{
   display: flex;
@@ -198,22 +198,11 @@ html, body{
   font-weight: 600;
 }
 .weather-details{ display: flex; gap: 22px; margin-top: auto; }
-.weather-stat, .bathroom-stat{ display: flex; flex-direction: column; gap: 2px; }
+.weather-stat{ display: flex; flex-direction: column; gap: 2px; }
 .stat-label{ font-size: 12px; color: var(--slate); }
 .stat-value{ font-size: 20px; font-weight: 600; font-family: var(--font-display); }
 
-/* --- Sensores del baño --------------------------------------------------- */
-.widget-bathroom{ grid-area: bathroom; }
-.bathroom-grid{
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  justify-content: center;
-  flex: 1;
-}
-.bathroom-stat .stat-value{ font-size: 30px; color: var(--aqua); }
-
-/* --- Calendario ------------------------------------------------------- */
+/* --- Calendari ------------------------------------------------------- */
 .widget-calendar{ grid-area: calendar; }
 .calendar-list{
   list-style: none;
@@ -230,4 +219,85 @@ html, body{
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(242,246,247,0.07);
 }
-.calendar-item:last-child{ border-bottom: none;
+.calendar-item:last-child{ border-bottom: none; padding-bottom: 0; }
+.calendar-date{
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--aqua);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.calendar-title{ font-size: 15px; color: var(--foam); }
+.calendar-time{ margin-left: auto; font-size: 13px; color: var(--slate); }
+
+/* --- Fotografies (comú als dos carrusels: principal i lateral) -------- */
+.widget-photos,
+.widget-photos-side{
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  min-height: 160px;
+}
+.widget-photos{ grid-area: photos; }
+.widget-photos-side{ grid-area: photosSide; }
+
+.photo-frame{ position: absolute; inset: 0; }
+.photo-layer{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+.photo-layer.photo-visible{ opacity: 1; }
+
+/* --- Notícies (tira) --------------------------------------------------- */
+.widget-news{
+  grid-area: news;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 28px;
+}
+.news-eyebrow{
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--aqua);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.news-track{ overflow: hidden; flex: 1; }
+#news-headline{
+  display: inline-block;
+  font-size: 17px;
+  color: var(--foam);
+  animation: news-fade 0.6s ease;
+}
+@keyframes news-fade{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+/* Widget desactivat des de config.js: no ocupa espai ni memòria */
+.widget-hidden{ display: none !important; }
+
+/* =========================================================================
+   RESPONSIVE — per si el dashboard es visualitza en tablets més petites
+   ========================================================================= */
+@media (max-width: 900px){
+  #dashboard{
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "clock      clock"
+      "weather    photosSide"
+      "photos     calendar"
+      "news       news";
+  }
+  .clock-time{ font-size: clamp(48px, 12vw, 80px); }
+}
