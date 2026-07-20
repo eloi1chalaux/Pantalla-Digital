@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-  <!-- Fondo dinámico: capas de "ripples" ambientales que cambian según hora / clima -->
+  <!-- Fons dinàmic: capes d'"ones" ambientals que canvien segons l'hora / el temps -->
   <div id="ambient-bg" aria-hidden="true">
     <div class="ripple ripple-a"></div>
     <div class="ripple ripple-b"></div>
@@ -23,7 +23,7 @@
 
   <main id="dashboard">
 
-    <!-- ============ CABECERA: Reloj ============ -->
+    <!-- ============ CAPÇALERA: Rellotge ============ -->
     <section id="widget-clock" class="widget widget-clock" data-widget="clock">
       <div class="clock-time" id="clock-time">--:--</div>
       <div class="clock-meta">
@@ -33,10 +33,10 @@
       </div>
     </section>
 
-    <!-- ============ TIEMPO EXTERIOR ============ -->
+    <!-- ============ TEMPS EXTERIOR ============ -->
     <section id="widget-weather" class="widget widget-weather" data-widget="weather">
       <header class="widget-header">
-        <span class="widget-eyebrow">Exterior</span>
+        <span class="widget-eyebrow" id="weather-place">Exterior</span>
       </header>
       <div class="weather-main">
         <div class="weather-icon" id="weather-icon">⛅</div>
@@ -44,52 +44,39 @@
       </div>
       <div class="weather-details">
         <div class="weather-stat">
-          <span class="stat-label">Sensación</span>
+          <span class="stat-label">Sensació</span>
           <span class="stat-value" id="weather-feels">--°</span>
         </div>
         <div class="weather-stat">
-          <span class="stat-label">Humedad</span>
+          <span class="stat-label">Humitat</span>
           <span class="stat-value" id="weather-humidity">--%</span>
         </div>
         <div class="weather-stat">
-          <span class="stat-label">Lluvia</span>
+          <span class="stat-label">Pluja</span>
           <span class="stat-value" id="weather-rain">--%</span>
         </div>
       </div>
     </section>
 
-    <!-- ============ SENSORES DEL BAÑO ============ -->
-    <section id="widget-bathroom" class="widget widget-bathroom" data-widget="bathroomSensors">
-      <header class="widget-header">
-        <span class="widget-eyebrow">Baño</span>
-      </header>
-      <div class="bathroom-grid">
-        <div class="bathroom-stat">
-          <span class="stat-value" id="bathroom-temp">--°</span>
-          <span class="stat-label">Temperatura</span>
-        </div>
-        <div class="bathroom-stat">
-          <span class="stat-value" id="bathroom-humidity">--%</span>
-          <span class="stat-label">Humedad</span>
-        </div>
-        <div class="bathroom-stat">
-          <span class="stat-value" id="bathroom-air">--</span>
-          <span class="stat-label">Aire</span>
-        </div>
+    <!-- ============ FOTOGRAFIES · columna dreta (abans: sensors del bany) ============ -->
+    <section id="widget-photos-side" class="widget widget-photos-side" data-widget="photosSide">
+      <div class="photo-frame">
+        <img id="photo-side-current" src="" alt="" class="photo-layer photo-visible">
+        <img id="photo-side-next" src="" alt="" class="photo-layer">
       </div>
     </section>
 
-    <!-- ============ CALENDARIO ============ -->
+    <!-- ============ CALENDARI ============ -->
     <section id="widget-calendar" class="widget widget-calendar" data-widget="calendar">
       <header class="widget-header">
-        <span class="widget-eyebrow">Próximos eventos</span>
+        <span class="widget-eyebrow">Pròxims esdeveniments</span>
       </header>
       <ul class="calendar-list" id="calendar-list">
-        <!-- generado por calendar.js -->
+        <!-- generat per calendar.js -->
       </ul>
     </section>
 
-    <!-- ============ FOTOGRAFÍAS ============ -->
+    <!-- ============ FOTOGRAFIES · principal ============ -->
     <section id="widget-photos" class="widget widget-photos" data-widget="photos">
       <div class="photo-frame">
         <img id="photo-current" src="" alt="" class="photo-layer photo-visible">
@@ -97,21 +84,21 @@
       </div>
     </section>
 
-    <!-- ============ NOTICIAS (ticker inferior) ============ -->
+    <!-- ============ NOTÍCIES (tira inferior) ============ -->
     <section id="widget-news" class="widget widget-news" data-widget="news">
-      <span class="news-eyebrow">Noticias</span>
+      <span class="news-eyebrow">Notícies</span>
       <div class="news-track">
-        <span id="news-headline">Cargando titulares…</span>
+        <span id="news-headline">Carregant titulars…</span>
       </div>
     </section>
 
   </main>
 
-  <!-- Orden de carga: config primero, app.js al final orquesta todo -->
+  <!-- Ordre de càrrega: config i repo primer, app.js al final ho orquestra tot -->
   <script src="js/config.js"></script>
+  <script src="js/repo.js"></script>
   <script src="js/clock.js"></script>
   <script src="js/weather.js"></script>
-  <script src="js/bathroom.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/photos.js"></script>
   <script src="js/news.js"></script>
