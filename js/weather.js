@@ -1,10 +1,18 @@
 /**
  * weather.js
  * -----------------------------------------------------------------------
- * Widget independiente: temperatura, sensación térmica, humedad y
- * probabilidad de lluvia. Usa Open-Meteo (gratuita, sin API key).
- * Expone WeatherWidget.init()/destroy() y WeatherWidget.getCondition()
- * para que app.js pueda adaptar el fondo dinámico (sol / lluvia).
+ * Widget independent: temperatura, sensació tèrmica, humitat i
+ * probabilitat de pluja, per a Cassà de la Selva.
+ *
+ * Proveïdor actual: Open-Meteo (gratuïta, sense clau, funciona directament
+ * des d'una pàgina estàtica com aquesta).
+ *
+ * Quan tinguis la teva clau de Meteocat, posa config.weather.provider =
+ * 'meteocat' i omple meteocatApiKey — aquest fitxer ja detecta el canvi
+ * automàticament i fa servir fetchFromMeteocat() en lloc de
+ * fetchFromOpenMeteo(). Recorda: com que aquesta pàgina no té servidor,
+ * la clau de Meteocat quedaria visible al codi font — assegura't que
+ * n'ets conscient abans d'activar-ho.
  * -----------------------------------------------------------------------
  */
 
@@ -13,28 +21,28 @@ const WeatherWidget = (() => {
   let timerId = null;
   let lastCondition = 'clear'; // 'clear' | 'cloudy' | 'rain'
 
-  // Códigos WMO simplificados -> icono + condición general
+  // Codis WMO simplificats -> icona + condició general (Open-Meteo)
   const WMO_MAP = {
-    0:  { icon: '☀️', label: 'Despejado',        cond: 'clear'  },
-    1:  { icon: '🌤️', label: 'Poco nuboso',       cond: 'clear'  },
-    2:  { icon: '⛅', label: 'Parcialmente nuboso', cond: 'cloudy' },
-    3:  { icon: '☁️', label: 'Nublado',           cond: 'cloudy' },
-    45: { icon: '🌫️', label: 'Niebla',            cond: 'cloudy' },
-    48: { icon: '🌫️', label: 'Niebla',            cond: 'cloudy' },
-    51: { icon: '🌦️', label: 'Llovizna',          cond: 'rain'   },
-    61: { icon: '🌧️', label: 'Lluvia',            cond: 'rain'   },
-    63: { icon: '🌧️', label: 'Lluvia',            cond: 'rain'   },
-    65: { icon: '🌧️', label: 'Lluvia fuerte',     cond: 'rain'   },
-    71: { icon: '🌨️', label: 'Nieve',             cond: 'rain'   },
-    80: { icon: '🌦️', label: 'Chubascos',         cond: 'rain'   },
-    95: { icon: '⛈️', label: 'Tormenta',          cond: 'rain'   }
+    0:  { icon: '☀️', label: 'Serè',              cond: 'clear'  },
+    1:  { icon: '🌤️', label: 'Poc ennuvolat',      cond: 'clear'  },
+    2:  { icon: '⛅', label: 'Parcialment ennuvolat', cond: 'cloudy' },
+    3:  { icon: '☁️', label: 'Ennuvolat',          cond: 'cloudy' },
+    45: { icon: '🌫️', label: 'Boira',              cond: 'cloudy' },
+    48: { icon: '🌫️', label: 'Boira',              cond: 'cloudy' },
+    51: { icon: '🌦️', label: 'Plovisqueig',        cond: 'rain'   },
+    61: { icon: '🌧️', label: 'Pluja',              cond: 'rain'   },
+    63: { icon: '🌧️', label: 'Pluja',              cond: 'rain'   },
+    65: { icon: '🌧️', label: 'Pluja forta',        cond: 'rain'   },
+    71: { icon: '🌨️', label: 'Neu',                cond: 'rain'   },
+    80: { icon: '🌦️', label: 'Xàfecs',             cond: 'rain'   },
+    95: { icon: '⛈️', label: 'Tempesta',           cond: 'rain'   }
   };
 
-  function mapCode(code){
+  function mapWmoCode(code){
     return WMO_MAP[code] || { icon: '⛅', label: 'Variable', cond: 'cloudy' };
   }
 
-  async function fetchWeather(){
+  async function fetchFromOpenMeteo(){
     const cfg = window.DASHBOARD_CONFIG.weather;
     const tempUnit = cfg.units === 'fahrenheit' ? 'fahrenheit' : 'celsius';
 
@@ -45,43 +53,34 @@ const WeatherWidget = (() => {
       `&temperature_unit=${tempUnit}&timezone=auto`;
 
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Weather API error: ' + res.status);
-    return res.json();
-  }
+    if (!res.ok) throw new Error('Error API Open-Meteo: ' + res.status);
+    const data = await res.json();
+    const current = data.current;
+    const info = mapWmoCode(current.weather_code);
 
-  function renderError(){
-    const el = document.getElementById('weather-temp');
-    if (el) el.textContent = '--°';
-  }
-
-  async function render(){
-    try {
-      const data = await fetchWeather();
-      const current = data.current;
-      const info = mapCode(current.weather_code);
-      lastCondition = info.cond;
-
-      // probabilidad de lluvia: usamos la hora actual del array horario
-      let rainChance = 0;
-      if (data.hourly && data.hourly.time && data.hourly.precipitation_probability){
-        const nowIso = new Date().toISOString().slice(0, 13);
-        const idx = data.hourly.time.findIndex(t => t.startsWith(nowIso));
-        if (idx !== -1) rainChance = data.hourly.precipitation_probability[idx];
-      }
-
-      const unitSymbol = window.DASHBOARD_CONFIG.weather.units === 'fahrenheit' ? '°F' : '°C';
-
-      document.getElementById('weather-icon').textContent = info.icon;
-      document.getElementById('weather-temp').textContent = `${Math.round(current.temperature_2m)}${unitSymbol}`;
-      document.getElementById('weather-feels').textContent = `${Math.round(current.apparent_temperature)}${unitSymbol}`;
-      document.getElementById('weather-humidity').textContent = `${Math.round(current.relative_humidity_2m)}%`;
-      document.getElementById('weather-rain').textContent = `${Math.round(rainChance)}%`;
-    } catch (err){
-      console.warn('[WeatherWidget]', err);
-      renderError();
+    let rainChance = 0;
+    if (data.hourly && data.hourly.time && data.hourly.precipitation_probability){
+      const nowIso = new Date().toISOString().slice(0, 13);
+      const idx = data.hourly.time.findIndex(t => t.startsWith(nowIso));
+      if (idx !== -1) rainChance = data.hourly.precipitation_probability[idx];
     }
+
+    return {
+      icon: info.icon,
+      condition: info.cond,
+      temperature: current.temperature_2m,
+      feelsLike: current.apparent_temperature,
+      humidity: current.relative_humidity_2m,
+      rainChance
+    };
   }
 
-  function init(){
-    render();
-    const minutes
+  // Placeholder per a la integració futura amb l'API de Meteocat.
+  // Documentació: https://apidocs.meteocat.gencat.cat
+  // Recorda: cal registre previ (fins a 7 dies) i la clau aniria al
+  // codi font, visible per a qualsevol visitant de la pàgina.
+  async function fetchFromMeteocat(){
+    const cfg = window.DASHBOARD_CONFIG.weather;
+    throw new Error(
+      'Integració amb Meteocat encara no implementada. ' +
+      'Omple meteocatApiKey i implementa aquesta funció quan
