@@ -1,8 +1,8 @@
 /**
  * clock.js
  * -----------------------------------------------------------------------
- * Widget independiente: hora, fecha y día de la semana.
- * No depende de ningún otro módulo. Expone ClockWidget.init()/destroy().
+ * Widget independent: hora, data i dia de la setmana.
+ * No depèn de cap altre mòdul. Exposa ClockWidget.init()/destroy().
  * -----------------------------------------------------------------------
  */
 
@@ -33,8 +33,8 @@ const ClockWidget = (() => {
 
   function init(){
     render();
-    // Se sincroniza cada segundo pero solo repinta lo estrictamente
-    // necesario (render() es barato: dos "toLocaleString").
+    // Es sincronitza cada segon però només repinta el que cal
+    // (render() és barat: dues crides a "toLocaleString").
     timerId = setInterval(render, 1000);
   }
 
