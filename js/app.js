@@ -1,22 +1,53 @@
 /**
  * app.js
  * -----------------------------------------------------------------------
- * Orquestador principal. No contiene lógica de negocio de ningún widget:
- * solo decide, según config.js, qué widgets se inicializan, y gestiona
- * el fondo dinámico ambiental (día / noche / lluvia / sol).
+ * Orquestrador principal. No conté lògica de negoci de cap widget: només
+ * decideix, segons config.js, quins widgets s'inicialitzen, i gestiona el
+ * fons dinàmic ambiental (dia / nit / pluja / sol).
  *
- * Quitar un widget de config.js hace que este archivo simplemente no lo
- * inicialice — el resto del sistema no se entera ni se rompe.
+ * Treure un widget de config.js fa que aquest fitxer simplement no
+ * l'inicialitzi — la resta del sistema no se n'assabenta ni es trenca.
  * -----------------------------------------------------------------------
  */
 
+let photoCarouselMain = null;
+let photoCarouselSide = null;
+
 const WIDGET_MODULES = {
-  clock:            { module: () => window.ClockWidget,    selector: '#widget-clock'    },
-  weather:          { module: () => window.WeatherWidget,  selector: '#widget-weather'  },
-  bathroomSensors:  { module: () => window.BathroomWidget, selector: '#widget-bathroom' },
-  calendar:         { module: () => window.CalendarWidget, selector: '#widget-calendar' },
-  photos:           { module: () => window.PhotosWidget,   selector: '#widget-photos'   },
-  news:             { module: () => window.NewsWidget,     selector: '#widget-news'     }
+  clock:    { module: () => window.ClockWidget,    selector: '#widget-clock'    },
+  weather:  { module: () => window.WeatherWidget,  selector: '#widget-weather'  },
+  calendar: { module: () => window.CalendarWidget, selector: '#widget-calendar' },
+  news:     { module: () => window.NewsWidget,     selector: '#widget-news'     },
+
+  photos: {
+    module: () => {
+      if (!photoCarouselMain){
+        photoCarouselMain = window.createPhotoCarousel({
+          currentId: 'photo-current',
+          nextId: 'photo-next',
+          images: window.DASHBOARD_CONFIG.photos.images,
+          intervalSeconds: window.DASHBOARD_CONFIG.photos.intervalSeconds
+        });
+      }
+      return photoCarouselMain;
+    },
+    selector: '#widget-photos'
+  },
+
+  photosSide: {
+    module: () => {
+      if (!photoCarouselSide){
+        photoCarouselSide = window.createPhotoCarousel({
+          currentId: 'photo-side-current',
+          nextId: 'photo-side-next',
+          images: window.DASHBOARD_CONFIG.photosSide.images,
+          intervalSeconds: window.DASHBOARD_CONFIG.photosSide.intervalSeconds
+        });
+      }
+      return photoCarouselSide;
+    },
+    selector: '#widget-photos-side'
+  }
 };
 
 function initWidgets(){
@@ -25,14 +56,14 @@ function initWidgets(){
   Object.keys(WIDGET_MODULES).forEach(key => {
     const { module, selector } = WIDGET_MODULES[key];
     const el = document.querySelector(selector);
-    const widgetModule = module();
 
     if (!enabled[key]){
       if (el) el.classList.add('widget-hidden');
-      return; // no se inicializa: cero coste de CPU/memoria/red
+      return; // no s'inicialitza: cap cost de CPU/memòria/xarxa
     }
 
     if (el) el.classList.remove('widget-hidden');
+    const widgetModule = module();
     if (widgetModule && typeof widgetModule.init === 'function'){
       widgetModule.init();
     }
@@ -40,10 +71,10 @@ function initWidgets(){
 }
 
 /* =========================================================================
-   FONDO DINÁMICO
-   Combina la hora del día (siempre disponible, sin red) con la condición
-   meteorológica (cuando el widget de tiempo está activo) para tintar las
-   "ondas" ambientales definidas en style.css.
+   FONS DINÀMIC
+   Combina l'hora del dia (sempre disponible, sense xarxa) amb la
+   condició meteorològica (quan el widget del temps està actiu) per tenyir
+   les "ones" ambientals definides a style.css.
    ========================================================================= */
 
 const AMBIENT_THEMES = {
@@ -60,7 +91,6 @@ function resolveThemeKey(){
 
   if (isNight) return 'night';
 
-  // Si el widget de tiempo está activo, afinamos con la condición real
   if (window.DASHBOARD_CONFIG.widgets.weather && window.WeatherWidget){
     const condition = window.WeatherWidget.getCondition();
     if (condition === 'rain') return 'rain';
@@ -85,13 +115,11 @@ function applyAmbientTheme(){
 
 function initAmbientBackground(){
   applyAmbientTheme();
-  // Revisamos cada 5 minutos: suficiente para seguir la hora y el clima
-  // sin sobrecargar el dispositivo.
   setInterval(applyAmbientTheme, 5 * 60 * 1000);
 }
 
 /* =========================================================================
-   ARRANQUE
+   ARRENCADA
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
   initWidgets();
