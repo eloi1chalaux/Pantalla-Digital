@@ -1,13 +1,13 @@
 /**
  * news.js
  * -----------------------------------------------------------------------
- * Widget independiente: titulares rotativos. Nunca abre enlaces ni admite
- * interacción — solo muestra texto.
+ * Widget independent: titulars rotatius. Mai obre enllaços ni admet
+ * interacció — només mostra text.
  *
- * Si `config.news.apiUrl` está vacío, se usan titulares de ejemplo
- * (fallbackHeadlines), por lo que el dashboard funciona sin conexión a
- * ninguna API de noticias. Para conectar una fuente real, apunta apiUrl a
- * un endpoint que devuelva JSON `[{ "title": "..." }, ...]`.
+ * Llegeix data/noticies.json d'aquest mateix repositori mitjançant
+ * repo.js — el mateix fitxer que pots editar en directe des de
+ * admin.html. Si no es pot llegir, es fa servir
+ * config.news.fallbackHeadlines com a xarxa de seguretat.
  * -----------------------------------------------------------------------
  */
 
@@ -19,28 +19,23 @@ const NewsWidget = (() => {
   let index = 0;
 
   async function fetchHeadlines(){
-    const { apiUrl, fallbackHeadlines } = window.DASHBOARD_CONFIG.news;
-    if (!apiUrl) return fallbackHeadlines;
-
+    const cfg = window.DASHBOARD_CONFIG.news;
     try {
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error('News API error: ' + res.status);
-      const data = await res.json();
-      const titles = data.map(item => item.title).filter(Boolean);
-      return titles.length ? titles : fallbackHeadlines;
+      const items = await window.RepoAccess.readJsonFile(cfg.dataFile);
+      const titles = Array.isArray(items) ? items.map(i => i.title).filter(Boolean) : [];
+      return titles.length ? titles : cfg.fallbackHeadlines;
     } catch (err){
-      console.warn('[NewsWidget] usando fallback:', err);
-      return fallbackHeadlines;
+      console.warn('[NewsWidget] fent servir fallback:', err);
+      return cfg.fallbackHeadlines;
     }
   }
 
   function showCurrent(){
     const el = document.getElementById('news-headline');
     if (!el || headlines.length === 0) return;
-    // Reinicia la animación de aparición en cada cambio
+    // Reinicia l'animació d'aparició a cada canvi
     el.style.animation = 'none';
-    // Forzar reflow para poder relanzar la animación CSS
-    void el.offsetWidth;
+    void el.offsetWidth; // forçar reflow per poder relimitar l'animació CSS
     el.style.animation = '';
     el.textContent = headlines[index];
   }
@@ -60,9 +55,9 @@ const NewsWidget = (() => {
   function init(){
     refresh();
     const rotateSeconds = window.DASHBOARD_CONFIG.news.rotateSeconds || 8;
+    const refreshMinutes = window.DASHBOARD_CONFIG.news.refreshMinutes || 5;
     rotateTimerId = setInterval(rotate, rotateSeconds * 1000);
-    // Vuelve a pedir titulares nuevos cada 30 minutos
-    refreshTimerId = setInterval(refresh, 30 * 60 * 1000);
+    refreshTimerId = setInterval(refresh, refreshMinutes * 60 * 1000);
   }
 
   function destroy(){
