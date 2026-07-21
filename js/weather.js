@@ -19,11 +19,10 @@
 const WeatherWidget = (() => {
 
   let timerId = null;
-  let lastCondition = 'clear'; // 'clear' | 'cloudy' | 'rain'
+  let lastCondition = 'clear';
 
-  // Codis WMO simplificats -> icona + condició general (Open-Meteo)
   const WMO_MAP = {
-    0:  { icon: '☀️', label: 'Serè',              cond: 'clear'  },
+    0:  { icon: '☀️', label: 'Sere',              cond: 'clear'  },
     1:  { icon: '🌤️', label: 'Poc ennuvolat',      cond: 'clear'  },
     2:  { icon: '⛅', label: 'Parcialment ennuvolat', cond: 'cloudy' },
     3:  { icon: '☁️', label: 'Ennuvolat',          cond: 'cloudy' },
@@ -34,7 +33,7 @@ const WeatherWidget = (() => {
     63: { icon: '🌧️', label: 'Pluja',              cond: 'rain'   },
     65: { icon: '🌧️', label: 'Pluja forta',        cond: 'rain'   },
     71: { icon: '🌨️', label: 'Neu',                cond: 'rain'   },
-    80: { icon: '🌦️', label: 'Xàfecs',             cond: 'rain'   },
+    80: { icon: '🌦️', label: 'Xafecs',             cond: 'rain'   },
     95: { icon: '⛈️', label: 'Tempesta',           cond: 'rain'   }
   };
 
@@ -46,11 +45,11 @@ const WeatherWidget = (() => {
     const cfg = window.DASHBOARD_CONFIG.weather;
     const tempUnit = cfg.units === 'fahrenheit' ? 'fahrenheit' : 'celsius';
 
-    const url = `https://api.open-meteo.com/v1/forecast` +
-      `?latitude=${cfg.latitude}&longitude=${cfg.longitude}` +
-      `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code` +
-      `&hourly=precipitation_probability` +
-      `&temperature_unit=${tempUnit}&timezone=auto`;
+    const url = 'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=' + cfg.latitude + '&longitude=' + cfg.longitude +
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code' +
+      '&hourly=precipitation_probability' +
+      '&temperature_unit=' + tempUnit + '&timezone=auto';
 
     const res = await fetch(url);
     if (!res.ok) throw new Error('Error API Open-Meteo: ' + res.status);
@@ -61,7 +60,7 @@ const WeatherWidget = (() => {
     let rainChance = 0;
     if (data.hourly && data.hourly.time && data.hourly.precipitation_probability){
       const nowIso = new Date().toISOString().slice(0, 13);
-      const idx = data.hourly.time.findIndex(t => t.startsWith(nowIso));
+      const idx = data.hourly.time.findIndex(function(t){ return t.startsWith(nowIso); });
       if (idx !== -1) rainChance = data.hourly.precipitation_probability[idx];
     }
 
@@ -71,16 +70,74 @@ const WeatherWidget = (() => {
       temperature: current.temperature_2m,
       feelsLike: current.apparent_temperature,
       humidity: current.relative_humidity_2m,
-      rainChance
+      rainChance: rainChance
     };
   }
 
-  // Placeholder per a la integració futura amb l'API de Meteocat.
-  // Documentació: https://apidocs.meteocat.gencat.cat
-  // Recorda: cal registre previ (fins a 7 dies) i la clau aniria al
-  // codi font, visible per a qualsevol visitant de la pàgina.
   async function fetchFromMeteocat(){
     const cfg = window.DASHBOARD_CONFIG.weather;
-    throw new Error(
-      'Integració amb Meteocat encara no implementada. ' +
-      'Omple meteocatApiKey i implementa aquesta funció quan
+    throw new Error('Integracio amb Meteocat encara no implementada. Omple meteocatApiKey i implementa aquesta funcio quan tinguis la clau (municipi: ' + cfg.meteocatMunicipiCodi + ').');
+  }
+
+  function renderError(){
+    const el = document.getElementById('weather-temp');
+    if (el) el.textContent = '--°';
+  }
+
+  async function render(){
+    const cfg = window.DASHBOARD_CONFIG.weather;
+
+    const placeEl = document.getElementById('weather-place');
+    if (placeEl) placeEl.textContent = cfg.placeName || 'Exterior';
+
+    try {
+      const result = cfg.provider === 'meteocat' ? await fetchFromMeteocat() : await fetchFromOpenMeteo();
+
+      lastCondition = result.condition;
+      const unitSymbol = cfg.units === 'fahrenheit' ? '°F' : '°C';
+
+      document.getElementById('weather-icon').textContent = result.icon;
+      document.getElementById('weather-temp').textContent = Math.round(result.temperature) + unitSymbol;
+      document.getElementById('weather-feels').textContent = Math.round(result.feelsLike) + unitSymbol;
+      document.getElementById('weather-humidity').textContent = Math.round(result.humidity) + '%';
+      document.getElementById('weather-rain').textContent = Math.round(result.rainChance) + '%';
+    } catch (err){
+      console.warn('[WeatherWidget]', err);
+      if (cfg.provider === 'meteocat'){
+        try {
+          const fallback = await fetchFromOpenMeteo();
+          lastCondition = fallback.condition;
+          const unitSymbol = cfg.units === 'fahrenheit' ? '°F' : '°C';
+          document.getElementById('weather-icon').textContent = fallback.icon;
+          document.getElementById('weather-temp').textContent = Math.round(fallback.temperature) + unitSymbol;
+          document.getElementById('weather-feels').textContent = Math.round(fallback.feelsLike) + unitSymbol;
+          document.getElementById('weather-humidity').textContent = Math.round(fallback.humidity) + '%';
+          document.getElementById('weather-rain').textContent = Math.round(fallback.rainChance) + '%';
+          return;
+        } catch (fallbackErr){
+          console.warn('[WeatherWidget] fallback Open-Meteo tambe ha fallat', fallbackErr);
+        }
+      }
+      renderError();
+    }
+  }
+
+  function init(){
+    render();
+    const minutes = window.DASHBOARD_CONFIG.weather.refreshMinutes || 15;
+    timerId = setInterval(render, minutes * 60 * 1000);
+  }
+
+  function destroy(){
+    if (timerId) clearInterval(timerId);
+    timerId = null;
+  }
+
+  function getCondition(){
+    return lastCondition;
+  }
+
+  return { init: init, destroy: destroy, getCondition: getCondition };
+})();
+
+window.WeatherWidget = WeatherWidget;
