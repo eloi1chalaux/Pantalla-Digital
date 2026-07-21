@@ -259,7 +259,7 @@ html, body{
   transform: scale(1);
 }
 
-/* --- Notícies (tira) --------------------------------------------------- */
+/* --- Notícies 3Cat Info(tira) --------------------------------------------------- */
 .widget-news{
   grid-area: news;
   flex-direction: row;
