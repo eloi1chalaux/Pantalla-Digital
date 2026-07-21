@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administrador — Bathroom Smart Dashboard</title>
+<style>
+  :root{
+    --ink: #0e1520;
+    --mist: #182233;
+    --foam: #f2f6f7;
+    --slate: #8aa0ae;
+    --aqua: #5fd3c4;
+    --danger: #e2665a;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin: 0;
+    background: var(--ink);
+    color: var(--foam);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    padding: 20px;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  h1{ font-size: 22px; margin-bottom: 4px; }
+  p.subtitle{ color: var(--slate); margin-top: 0; font-size: 14px; }
+  section{
+    background: var(--mist);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  section h2{ font-size: 16px; margin: 0 0 6px; }
+  section p.help{ color: var(--slate); font-size: 13px; margin: 0 0 14px; }
+  label{ display:block; font-size: 12px; color: var(--slate); margin-bottom: 4px; }
+  input[type=password], input[type=text], input[type=date], input[type=time]{
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--foam);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .row{
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .row .field{ flex: 1; min-width: 120px; margin-bottom: 0; }
+  .row input{ margin-bottom: 0; }
+  button{
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .btn-primary{ background: var(--aqua); color: var(--ink); }
+  .btn-secondary{ background: rgba(255,255,255,0.1); color: var(--foam); }
+  .btn-danger{ background: transparent; color: var(--danger); padding: 8px 10px; }
+  .btn-add{ background: rgba(95,211,196,0.15); color: var(--aqua); width: 100%; margin-top: 4px; }
+  #status{
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: none;
+  }
+  #status.ok{ display:block; background: rgba(95,211,196,0.15); color: var(--aqua); }
+  #status.error{ display:block; background: rgba(226,102,90,0.15); color: var(--danger); }
+</style>
+</head>
+<body>
+
+  <h1>🛁 Administrador del dashboard</h1>
+  <p class="subtitle">Edita aquí les notícies i els pròxims esdeveniments. Els canvis es veuran a la pantalla del bany en pocs minuts.</p>
+
+  <section>
+    <h2>🔑 El teu token de GitHub</h2>
+    <p class="help">
+      Cal un token personal de GitHub amb permís d'escriptura sobre aquest
+      repositori. Es guarda només en aquest navegador (mai es publica ni
+      s'envia enlloc més). Si no en tens cap, mira la guia més avall.
+    </p>
+    <label for="token">Token personal</label>
+    <input type="password" id="token" placeholder="ghp_..." autocomplete="off">
+    <button class="btn-secondary" onclick="guardarToken()">Desa el token en aquest navegador</button>
+  </section>
+
+  <section>
+    <h2>📰 Notícies</h2>
+    <p class="help">Un titular per línia. S'aniran mostrant rotativament al dashboard.</p>
+    <div id="news-rows"></div>
+    <button class="btn-add" onclick="afegeixNoticia()">+ Afegeix titular</button>
+  </section>
+
+  <section>
+    <h2>📅 Pròxims esdeveniments / normes</h2>
+    <p class="help">Data, hora (opcional) i el text que es mostrarà.</p>
+    <div id="events-rows"></div>
+    <button class="btn-add" onclick="afegeixEsdeveniment()">+ Afegeix esdeveniment</button>
+  </section>
+
+  <button class="btn-primary" style="width:100%; padding: 14px;" onclick="desarTot()">💾 Desar tots els canvis</button>
+  <div id="status"></div>
+
+  <section style="margin-top: 30px;">
+    <h2>❔ Com aconsegueixo un token?</h2>
+    <p class="help" style="margin-bottom:0;">
+      1. A GitHub, entra al teu avatar (dalt a la dreta) → <strong>Settings</strong>.<br>
+      2. Baixa fins <strong>Developer settings</strong> (al final del menú esquerre).<br>
+      3. <strong>Personal access tokens → Fine-grained tokens → Generate new token</strong>.<br>
+      4. A "Repository access", tria <strong>Only select repositories</strong> i selecciona el teu repositori del dashboard.<br>
+      5. A "Permissions → Repository permissions", busca <strong>Contents</strong> i posa'l en <strong>Read and write</strong>.<br>
+      6. Genera el token i <strong>copia'l ara</strong> — GitHub només el mostra un cop.<br>
+      7. Enganxa'l al camp de dalt i pulsa "Desa el token".
+    </p>
+  </section>
+
+  <script src="js/repo.js"></script>
+  <script>
+    const TOKEN_KEY = 'gh_admin_token';
+
+    function mostrarEstat(missatge, tipus){
+      const el = document.getElementById('status');
+      el.textContent = missatge;
+      el.className = tipus;
+    }
+
+    function guardarToken(){
+      const token = document.getElementById('token').value.trim();
+      if (!token){ mostrarEstat('Escriu primer un token.', 'error'); return; }
+      localStorage.setItem(TOKEN_KEY, token);
+      mostrarEstat('Token desat en aquest navegador.', 'ok');
+    }
+
+    function getToken(){
+      return localStorage.getItem(TOKEN_KEY) || document.getElementById('token').value.trim();
+    }
+
+    // ---------------- Notícies ----------------
+    function afegeixNoticia(text = ''){
+      const container = document.getElementById('news-rows');
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="field">
+          <input type="text" placeholder="Titular..." value="${text.replace(/"/g, '&quot;')}">
+        </div>
+        <button class="btn-danger" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function llegirNoticies(){
+      const rows = document.querySelectorAll('#news-rows .row');
+      const items = [];
+      rows.forEach(row => {
+        const val = row.querySelector('input').value.trim();
+        if (val) items.push({ title: val });
+      });
+      return items;
+    }
+
+    // ---------------- Esdeveniments ----------------
+    function afegeixEsdeveniment(data = { title: '', date: '', time: '' }){
+      const container = document.getElementById('events-rows');
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Text</label>
+          <input type="text" class="ev-title" value="${(data.title || '').replace(/"/g, '&quot;')}">
+        </div>
+        <div class="field" style="max-width:140px;">
+          <label>Data</label>
+          <input type="date" class="ev-date" value="${data.date || ''}">
+        </div>
+        <div class="field" style="max-width:110px;">
+          <label>Hora</label>
+          <input type="time" class="ev-time" value="${data.time || ''}">
+        </div>
+        <button class="btn-danger" onclick="this.parentElement.remove()">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function llegirEsdeveniments(){
+      const rows = document.querySelectorAll('#events-rows .row');
+      const items = [];
+      rows.forEach(row => {
+        const title = row.querySelector('.ev-title').value.trim();
+        const date = row.querySelector('.ev-date').value;
+        const time = row.querySelector('.ev-time').value;
+        if (title && date) items.push({ title, date, time });
+      });
+      return items;
+    }
+
+    // ---------------- Desar ----------------
+    async function desarTot(){
+      const token = getToken();
+      if (!token){ mostrarEstat('Cal un token per poder desar canvis.', 'error'); return; }
+
+      mostrarEstat('Desant canvis…', 'ok');
+      try {
+        await window.RepoAccess.writeJsonFile(
+          window.DASHBOARD_CONFIG_PATHS.news,
+          llegirNoticies(),
+          token,
+          'Actualitza notícies des de admin.html'
+        );
+        await window.RepoAccess.writeJsonFile(
+          window.DASHBOARD_CONFIG_PATHS.events,
+          llegirEsdeveniments(),
+          token,
+          'Actualitza esdeveniments des de admin.html'
+        );
+        mostrarEstat('✅ Canvis desats correctament. Es veuran al dashboard en pocs minuts.', 'ok');
+      } catch (err){
+        console.error(err);
+        mostrarEstat('❌ Error en desar: ' + err.message, 'error');
+      }
+    }
+
+    // ---------------- Càrrega inicial ----------------
+    window.DASHBOARD_CONFIG_PATHS = {
+      news: 'data/noticies.json',
+      events: 'data/esdeveniments.json'
+    };
+
+    async function carregarActual(){
+      document.getElementById('token').value = '';
+      const tokenGuardat = localStorage.getItem(TOKEN_KEY);
+      if (tokenGuardat) mostrarEstat('Ja tens un token desat en aquest navegador.', 'ok');
+
+      try {
+        const noticies = await window.RepoAccess.readJsonFile(window.DASHBOARD_CONFIG_PATHS.news);
+        (noticies || []).forEach(n => afegeixNoticia(n.title));
+      } catch (err){
+        console.warn('No s\'han pogut carregar les notícies actuals', err);
+      }
+
+      try {
+        const esdeveniments = await window.RepoAccess.readJsonFile(window.DASHBOARD_CONFIG_PATHS.events);
+        (esdeveniments || []).forEach(afegeixEsdeveniment);
+      } catch (err){
+        console.warn('No s\'han pogut carregar els esdeveniments actuals', err);
+      }
+    }
+
+    carregarActual();
+  </script>
+</body>
+</html>
