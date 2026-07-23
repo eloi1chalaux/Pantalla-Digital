@@ -135,8 +135,8 @@ html, body{
   grid-template-rows: auto 1fr auto;
   gap: var(--gap);
   grid-template-areas:
-    "clock    weather    photosSide"
-    "photos   calendar   photosSide"
+    "clock    weather    timer"
+    "photos   calendar   timer"
     "news     news       news";
 }
 
@@ -230,16 +230,14 @@ html, body{
 .calendar-title{ font-size: 15px; color: var(--foam); }
 .calendar-time{ margin-left: auto; font-size: 13px; color: var(--slate); }
 
-/* --- Fotografies (comú als dos carrusels: principal i lateral) -------- */
-.widget-photos,
-.widget-photos-side{
+/* --- Fotografies (carrusel principal) -------- */
+.widget-photos{
+  grid-area: photos;
   padding: 0;
   overflow: hidden;
   position: relative;
   min-height: 160px;
 }
-.widget-photos{ grid-area: photos; }
-.widget-photos-side{ grid-area: photosSide; }
 
 .photo-frame{ position: absolute; inset: 0; }
 .photo-layer{
@@ -259,7 +257,73 @@ html, body{
   transform: scale(1);
 }
 
-/* --- Notícies 3Cat Info(tira) --------------------------------------------------- */
+/* --- Temporitzador (columna dreta, l'únic widget interactiu) ---------- */
+.widget-timer{
+  grid-area: timer;
+  align-items: stretch;
+  gap: 14px;
+}
+.timer-display{
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(48px, 6vw, 72px);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 4px;
+}
+.timer-display.is-ringing{
+  color: var(--amber);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+@keyframes timer-pulse{
+  0%, 100%{ opacity: 1; }
+  50%{ opacity: 0.4; }
+}
+.timer-presets{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.timer-btn{
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foam);
+  background: rgba(95,211,196,0.14);
+  border: 1px solid rgba(95,211,196,0.25);
+  border-radius: var(--radius-md);
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.timer-btn:active{ background: rgba(95,211,196,0.3); }
+.timer-btn-secondary{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
+.timer-btn-secondary:active{ background: rgba(255,255,255,0.14); }
+.timer-custom{
+  display: flex;
+  gap: 8px;
+}
+.timer-custom input{
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--foam);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: var(--font-body);
+}
+.timer-controls{
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+.timer-controls .timer-btn{ flex: 1; }
+
+/* --- Notícies (tira) --------------------------------------------------- */
 .widget-news{
   grid-area: news;
   flex-direction: row;
@@ -301,7 +365,7 @@ html, body{
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "clock      clock"
-      "weather    photosSide"
+      "weather    timer"
       "photos     calendar"
       "news       news";
   }
