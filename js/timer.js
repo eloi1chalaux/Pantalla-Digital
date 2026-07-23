@@ -88,7 +88,25 @@ const TimerWidget = (() => {
     render();
   }
 
+  function unlockAudio(){
+    if (!audioEl) return;
+    // Reproduir i aturar l'àudio EN EL MATEIX GEST de l'usuari (el clic)
+    // "desbloqueja" el so per a aquesta pàgina — així, quan el compte
+    // enrere arribi a zero més endavant, el navegador ja permet
+    // reproduir-lo sense bloquejar-lo per motius de seguretat.
+    const p = audioEl.play();
+    if (p && typeof p.then === 'function'){
+      p.then(function(){
+        audioEl.pause();
+        audioEl.currentTime = 0;
+      }).catch(function(err){
+        console.warn('[TimerWidget] no s\'ha pogut desbloquejar l\'àudio', err);
+      });
+    }
+  }
+
   function startWithMinutes(minutes){
+    unlockAudio();
     const cfg = window.DASHBOARD_CONFIG.timer;
     const max = cfg.maxCustomMinutes || 180;
     const clamped = Math.min(Math.max(Math.round(minutes), 1), max);
