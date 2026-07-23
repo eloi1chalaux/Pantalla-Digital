@@ -258,6 +258,7 @@ html, body{
   filter: blur(0);
   transform: scale(1);
 }
+
 /* --- Temporitzador (columna dreta, l'únic widget interactiu) ---------- */
 .widget-timer{
   grid-area: timer;
