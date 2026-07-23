@@ -19,7 +19,7 @@ const DASHBOARD_CONFIG = {
     news: true,
     calendar: true,
     photos: true,       // carrusel principal (part inferior esquerra)
-    photosSide: true     // carrusel de la columna dreta (abans: sensors del bany)
+    timer: true          // temporitzador interactiu (columna dreta)
   },
 
   // ------------------------------------------------------------
@@ -90,7 +90,7 @@ const DASHBOARD_CONFIG = {
   },
 
   // ------------------------------------------------------------
-  // Fotografies familiars — carrusel principal (part inferior esquerra)
+  // Fotografies familiars — carrusel principal
   // ------------------------------------------------------------
   photos: {
     intervalSeconds: 12,
@@ -98,22 +98,24 @@ const DASHBOARD_CONFIG = {
       'images/photo1.jpg',
       'images/photo2.jpg',
       'images/photo3.jpg',
-      'images/photo4.jpg'
-    ]
-  },
-
-  // ------------------------------------------------------------
-  // Fotografies familiars — carrusel de la columna dreta
-  // (abans ocupat pels sensors interiors del bany)
-  // ------------------------------------------------------------
-  photosSide: {
-    intervalSeconds: 15,
-    images: [
+      'images/photo4.jpg',
       'images/photo5.jpg',
       'images/photo6.jpg',
       'images/photo7.jpg',
       'images/photo8.jpg'
     ]
+  },
+
+  // ------------------------------------------------------------
+  // Temporitzador — l'únic widget interactiu del dashboard.
+  // presetsMinutes defineix els botons ràpids; maxCustomMinutes limita
+  // el valor que es pot escriure al camp personalitzat; soundFile és
+  // l'àudio que sona en acabar (puja'l dins la carpeta assets/).
+  // ------------------------------------------------------------
+  timer: {
+    presetsMinutes: [1, 5, 10, 30],
+    maxCustomMinutes: 180,
+    soundFile: 'assets/ringtonebath.mp3'
   },
 
   // ------------------------------------------------------------
