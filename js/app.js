@@ -11,13 +11,13 @@
  */
 
 let photoCarouselMain = null;
-let photoCarouselSide = null;
 
 const WIDGET_MODULES = {
   clock:    { module: () => window.ClockWidget,    selector: '#widget-clock'    },
   weather:  { module: () => window.WeatherWidget,  selector: '#widget-weather'  },
   calendar: { module: () => window.CalendarWidget, selector: '#widget-calendar' },
   news:     { module: () => window.NewsWidget,     selector: '#widget-news'     },
+  timer:    { module: () => window.TimerWidget,    selector: '#widget-timer'    },
 
   photos: {
     module: () => {
@@ -32,21 +32,6 @@ const WIDGET_MODULES = {
       return photoCarouselMain;
     },
     selector: '#widget-photos'
-  },
-
-  photosSide: {
-    module: () => {
-      if (!photoCarouselSide){
-        photoCarouselSide = window.createPhotoCarousel({
-          currentId: 'photo-side-current',
-          nextId: 'photo-side-next',
-          images: window.DASHBOARD_CONFIG.photosSide.images,
-          intervalSeconds: window.DASHBOARD_CONFIG.photosSide.intervalSeconds
-        });
-      }
-      return photoCarouselSide;
-    },
-    selector: '#widget-photos-side'
   }
 };
 
