@@ -58,12 +58,32 @@
       </div>
     </section>
 
-    <!-- ============ FOTOGRAFIES · columna dreta (abans: sensors del bany) ============ -->
-    <section id="widget-photos-side" class="widget widget-photos-side" data-widget="photosSide">
-      <div class="photo-frame">
-        <img id="photo-side-current" src="" alt="" class="photo-layer photo-visible">
-        <img id="photo-side-next" src="" alt="" class="photo-layer">
+    <!-- ============ TEMPORITZADOR · columna dreta (l'únic widget interactiu) ============ -->
+    <section id="widget-timer" class="widget widget-timer" data-widget="timer">
+      <header class="widget-header">
+        <span class="widget-eyebrow">Temporitzador</span>
+      </header>
+
+      <div class="timer-display" id="timer-display">00:00</div>
+
+      <div class="timer-presets">
+        <button class="timer-btn" data-minutes="1">1 min</button>
+        <button class="timer-btn" data-minutes="5">5 min</button>
+        <button class="timer-btn" data-minutes="10">10 min</button>
+        <button class="timer-btn" data-minutes="30">30 min</button>
       </div>
+
+      <div class="timer-custom">
+        <input type="number" id="timer-custom-input" min="1" max="180" placeholder="min">
+        <button class="timer-btn timer-btn-custom" id="timer-custom-start">Inicia</button>
+      </div>
+
+      <div class="timer-controls">
+        <button class="timer-btn timer-btn-secondary" id="timer-pause">Pausa</button>
+        <button class="timer-btn timer-btn-secondary" id="timer-reset">Reinicia</button>
+      </div>
+
+      <audio id="timer-alarm-audio" src="assets/ringtonebath.mp3" preload="auto"></audio>
     </section>
 
     <!-- ============ CALENDARI ============ -->
@@ -102,6 +122,7 @@
   <script src="js/calendar.js"></script>
   <script src="js/photos.js"></script>
   <script src="js/news.js"></script>
+  <script src="js/timer.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
